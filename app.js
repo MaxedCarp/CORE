@@ -20,7 +20,7 @@ client.once(Events.ClientReady, async c => {
 	global.mongo = await MongoClient.connect(`mongodb://${dbusr}:${dbpwd}@${addr}`);
 	global.db = global.mongo.db(activedb);
 	eventEmitter.emit('keepAlive');
-	eventEmitter.emit('keepCheck');
+	eventEmitter.emit('keepAliveCheck');
 });
 client.login(token);
 
@@ -31,19 +31,29 @@ process.on('uncaughtException', async (err) => {
 });
 
 async function UpdateKeep_Alive(){
-	global.mongo.db("global").collection("availability").updateOne({name: activedb}, { $set: {lastreported: Math.floor(await essentials.parsetime(Date.now() + "ms","s")), uptime: client.uptime } });
+	await global.mongo.db("global").collection("availability").updateOne({name: activedb}, { $set: {lastreported: Math.floor(await essentials.parsetime(Date.now() + "ms","s")), uptime: client.uptime } });
 }
 var keep_alive = function () {
 	setInterval(UpdateKeep_Alive, 5000);
 }
 async function CheckKeep_Alive(){
-	global.mongo.db("global").collection("availability").updateOne({name: activedb}, { $set: {lastreported: Math.floor(await essentials.parsetime(Date.now() + "ms","s")), uptime: client.uptime } });
+	let data = await global.mongo.db("global").collection("availability").find().toArray();
+	for (let i = 0; i <data.length; i++) {
+		let doc = data[i];
+		console.log(doc);
+		if ((doc.lastreported + 10 < Math.floor(new Date().valueOf() / 1000)) && doc.report === true && doc.lastreported !== 0) {
+			let dmChannel = await client.users.createDM("275305152842301440");
+			await dmChannel.send(`[<t:${Math.floor(new Date().valueOf() / 1000)}:f>] \`\`\`diff\n- PROCESS "${doc.name}" DOWN!!!\n\`\`\``);
+			await dmChannel.send(`[<t:${Math.floor(new Date().valueOf() / 1000)}:f>] \`\`\`diff\n- PROCESS "${doc.name}" DOWN!!!\n\`\`\``);
+			await dmChannel.send(`[<t:${Math.floor(new Date().valueOf() / 1000)}:f>] \`\`\`diff\n- PROCESS "${doc.name}" DOWN!!!\n\`\`\``);
+		}
+	}
 }
 var keep_aliveCheck = function () {
-	setInterval(CheckKeep_Alive, 5000);
+	setInterval(CheckKeep_Alive, 10000);
 }
 
-eventEmitter.on('keepAlive', keep_aliveCheck);
+eventEmitter.on('keepAlive', keep_alive);
 eventEmitter.on('keepAliveCheck', keep_aliveCheck);
 //Interaction Event
 

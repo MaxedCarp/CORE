@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "run-bot": "node app.js",
+    "pull": "git pull https://github.com/MaxedCarp/CORE.git main",
+    "update-dependencies": "pnpm i",
+    "build": "npm run pull && npm run update-dependencies"
   },
   "keywords": [],
   "author": "MaxedCarp",
